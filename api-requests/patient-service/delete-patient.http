@@ -1,0 +1,4 @@
+### DELETE request to delete existing patient
+DELETE http://localhost:4004/api/patients/123e4567-e89b-12d3-a456-426614174004
+
+###
