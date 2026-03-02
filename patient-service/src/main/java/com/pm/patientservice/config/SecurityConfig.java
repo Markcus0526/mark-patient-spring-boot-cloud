@@ -1,5 +1,6 @@
 package com.pm.patientservice.config;
 
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
+    @LoadBalanced
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // 1. Disable CSRF so POST requests don't require a token

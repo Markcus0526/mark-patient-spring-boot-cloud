@@ -21,16 +21,15 @@ public class JwtValidationGatewayFilterFactory extends
 
         public JwtValidationGatewayFilterFactory(WebClient.Builder webClientBuilder,
                                                  @Value("${auth.service.url}") String authServiceUrl) {
-            log.info("=====authServiceUrl: {}", authServiceUrl);
+            log.info("=====authServiceUrl=====: {}", authServiceUrl);
             this.webClient = webClientBuilder.baseUrl(authServiceUrl).build();
         }
     @Override
     public GatewayFilter apply(Object config) {
         return (exchange, chain) -> {
-            String token =
-                    exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-            log.info("=====Token: {}", token);
+            log.info("=====Token=====: {}", token);
 
             if (token == null || !token.startsWith("Bearer ")) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -44,7 +43,7 @@ public class JwtValidationGatewayFilterFactory extends
                     .toBodilessEntity()
                     .flatMap(response -> chain.filter(exchange))
                     .onErrorResume(e -> {
-                        log.error("=====onErrorResume: {}", e.toString());
+                        log.error("=====onErrorResume=====: {}", e.toString());
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         return exchange.getResponse().setComplete();
                     });
