@@ -1,0 +1,34 @@
+services:
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    environment:
+      # 1. Identity & Roles (KRaft)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+
+      # 2. Listeners (0.0.0.0 for binding)
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093'
+
+      # 3. Advertised (NO 0.0.0.0 HERE)
+      # 'kafka' is for your services, 'localhost' is for IntelliJ/Host
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094'
+
+      # 4. Security Mapping
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+
+      # 5. Cluster ID (Matches your logs)
+      CLUSTER_ID: '5L6g3nShT-eMCtK--X86sw'
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # 6. Auto-Create Topics (Optional for Dev)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9092:9092"
+      - "9094:9094"  # External port for IntelliJ / Host
+  #    networks:
+  #      - kafka-shared-net

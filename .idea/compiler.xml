@@ -6,7 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="analytics-service" />
         <module name="service-reg" />
+        <module name="auth-service" />
         <module name="billing-service" />
       </profile>
       <profile name="Annotation profile for patient-service" enabled="true">
@@ -14,7 +16,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.0.3/spring-boot-configuration-processor-4.0.3.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.0.3/spring-boot-configuration-processor-4.0.3.jar" />
         </processorPath>
         <module name="patient-service" />
@@ -26,6 +27,8 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="analytics-service" options="-parameters" />
+      <module name="auth-service" options="-parameters" />
       <module name="billing-service" options="-parameters" />
       <module name="demo" options="-parameters" />
       <module name="patient-service" options="-parameters" />

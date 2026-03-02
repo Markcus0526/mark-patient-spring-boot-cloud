@@ -8,6 +8,8 @@
         <option value="$PROJECT_DIR$/service-reg/pom.xml" />
         <option value="$PROJECT_DIR$/patient-service/pom.xml" />
         <option value="$PROJECT_DIR$/billing-service/pom.xml" />
+        <option value="$PROJECT_DIR$/analytics-service/pom.xml" />
+        <option value="$PROJECT_DIR$/auth-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
