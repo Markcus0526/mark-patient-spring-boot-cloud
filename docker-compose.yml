@@ -32,3 +32,9 @@ services:
       - "9094:9094"  # External port for IntelliJ / Host
   #    networks:
   #      - kafka-shared-net
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
