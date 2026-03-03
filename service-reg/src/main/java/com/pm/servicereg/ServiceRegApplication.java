@@ -1,4 +1,4 @@
-package com.pm.service_reg;
+package com.pm.servicereg;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

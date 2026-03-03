@@ -9,6 +9,7 @@ import com.pm.patientservice.kafka.KafkaProducer;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class PatientService {
         this.kafkaProducer = kafkaProducer;
     }
 
+    @CircuitBreaker(name="patientBreaker")
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
 
