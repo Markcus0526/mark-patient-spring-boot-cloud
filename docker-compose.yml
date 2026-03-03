@@ -1,4 +1,44 @@
 services:
+  patient-db:
+    image: postgres:15-alpine
+    container_name: patient-db
+    environment:
+      POSTGRES_DB: patient_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      # 1. Your persistent data (keep this)
+      - ./db-volumes/patient-db:/var/lib/postgresql/data
+      # 2. Your initialization script (ADD THIS)
+      - ./patient-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d patient_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-db:
+    image: postgres:15-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      # 1. Your persistent data (keep this)
+      - ./db-volumes/auth-db:/var/lib/postgresql/data
+      # 2. Your initialization script (ADD THIS)
+      - ./auth-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d auth_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   kafka:
     image: apache/kafka:4.1.1
     container_name: kafka
@@ -46,6 +86,111 @@ services:
       - 5672:5672
       - 15672:15672
     # user: guest, password: guest
-#    networks:
-#      - postgres
+  config-server:
+    image: markcus0526/config-server:latest
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - service-reg
+    networks:
+      - microservice-network
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
 
+  api-gateway:
+    image: markcus0526/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "4004:4004"
+    depends_on:
+      - config-server
+      - zipkin
+      - auth-service
+      - patient-service
+      - service-reg
+    networks:
+      - microservice-network
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+  auth-service:
+    image: markcus0526/auth-service:latest
+    container_name: auth-service
+    ports:
+      - "4005:4005"
+    depends_on:
+      - auth-db
+      - service-reg
+      - config-server
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+  analytics-service:
+    image: markcus0526/analytics-service:latest
+    container_name: analytics-service
+    ports:
+      - "4003:4003"
+    depends_on:
+      - kafka
+      - rabbitmq
+      - service-reg
+      - config-server
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+  billing-service:
+    image: markcus0526/billing-service:latest
+    container_name: billing-service
+    ports:
+      - "4001:4001"
+    depends_on:
+      - service-reg
+    networks:
+      - microservice-network
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+  patient-service:
+    image: markcus0526/patient-service:latest
+    container_name: patient-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - kafka
+      - zipkin
+      - service-reg
+      - config-server
+      - patient-db
+      - rabbitmq
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+  service-reg:
+    image: markcus0526/service-reg:latest
+    container_name: service-reg
+    ports:
+      - "8761:8761"
+    networks:
+      - microservice-network
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+
+networks:
+  microservice-network:
+    driver: bridge
+  postgres:
+    driver: bridge
+
+volumes:
+  patient-db:
+  auth-db:
