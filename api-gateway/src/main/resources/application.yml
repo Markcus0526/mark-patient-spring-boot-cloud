@@ -6,7 +6,7 @@ spring:
     name: api-gateway
   #Config server
   config:
-    import: optional:configserver:http://localhost:8888/api-gateway/default
+    import: optional:configserver:http://localhost:8888
 
 
   cloud:
@@ -15,7 +15,7 @@ spring:
         ### http://localhost:4004/auth/login
         ### API GATEWAY -> http://auth-service:4005/login
         - id: auth-service
-          uri: http://localhost:4005
+          uri: lb://AUTH-SERVICE-DEFAULT
           predicates:
             - Path=/auth/**
           filters:
@@ -77,4 +77,12 @@ management:
     web:
       exposure:
         include: "health,info,tracing"
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.gateway.route.RouteDefinitionLocator: INFO
+
+
 
