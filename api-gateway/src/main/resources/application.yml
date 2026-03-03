@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: api-gateway
+  #Config server
+  config:
+    import: optional:configserver:http://localhost:8888
 
   cloud:
     gateway:
@@ -73,3 +76,4 @@ management:
     web:
       exposure:
         include: "health,info,tracing"
+
