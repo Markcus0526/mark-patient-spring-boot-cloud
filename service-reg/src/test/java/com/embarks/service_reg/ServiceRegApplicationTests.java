@@ -1,4 +1,4 @@
-package com.pm.service_reg;
+package com.pm.servicereg;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
