@@ -106,8 +106,6 @@
 		<dependency>
 			<groupId>io.zipkin.reporter2</groupId>
 			<artifactId>zipkin-reporter-brave</artifactId>
-			<!-- For Boot 3.2.x, use version 2.16.3 or 3.3.0 -->
-			<version>2.16.3</version>
 		</dependency>
 		<!-- 3. Feign support: Propagates IDs from Gateway to Auth-Service -->
 		<dependency>
