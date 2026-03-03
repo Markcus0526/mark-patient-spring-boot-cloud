@@ -9,6 +9,7 @@
         <module name="analytics-service" />
         <module name="api-gateway" />
         <module name="service-reg" />
+        <module name="config-server" />
         <module name="auth-service" />
         <module name="billing-service" />
       </profile>
@@ -32,6 +33,7 @@
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="billing-service" options="-parameters" />
+      <module name="config-server" options="-parameters" />
       <module name="demo" options="-parameters" />
       <module name="patient-service" options="-parameters" />
       <module name="service-reg" options="-parameters" />
