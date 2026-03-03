@@ -8,6 +8,7 @@ import com.pm.patientservice.grpc.BillingServiceGrpcClient;
 import com.pm.patientservice.kafka.KafkaProducer;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
+import com.pm.patientservice.rabbitmq.RabbitMQProducer;
 import com.pm.patientservice.repository.PatientRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
@@ -23,18 +24,21 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
     private final KafkaProducer kafkaProducer;
+    private final RabbitMQProducer rabbitMQProducer;
 
     private static final Logger log = LoggerFactory.getLogger(PatientService.class);
 
     public PatientService(PatientRepository patientRepository,
                           BillingServiceGrpcClient billingServiceGrpcClient,
-                          KafkaProducer kafkaProducer) {
+                          KafkaProducer kafkaProducer,
+                          RabbitMQProducer rabbitMQProducer) {
         this.patientRepository = patientRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
         this.kafkaProducer = kafkaProducer;
+        this.rabbitMQProducer = rabbitMQProducer;
     }
 
-    @CircuitBreaker(name="patientBreaker")
+    @CircuitBreaker(name = "patientBreaker", fallbackMethod = "patientBreakerFallback")
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
 
@@ -55,8 +59,11 @@ public class PatientService {
                 newPatient.getEmail()
         );
 
-        log.warn("newPatient: {}", newPatient.toString());
-        kafkaProducer.sendEvent(newPatient);
+//        log.info("kafka: newPatient: {}", newPatient.toString());
+//        kafkaProducer.sendEvent(newPatient);
+
+        log.info("rabbitmq: newPatient: {}", newPatient.toString());
+        rabbitMQProducer.sendMessage(newPatient);
 
         // an email address must be unique
         return PatientMapper.toDTO(newPatient);
