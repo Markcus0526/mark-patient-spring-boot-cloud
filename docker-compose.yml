@@ -89,8 +89,11 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservice-network
+
     # user: guest, password: guest
   config-server:
     image: markcus0526/config-server:latest
@@ -134,6 +137,7 @@ services:
       - postgres
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
 
   analytics-service:
     image: markcus0526/analytics-service:latest

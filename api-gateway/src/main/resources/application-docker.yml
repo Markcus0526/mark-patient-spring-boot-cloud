@@ -15,7 +15,7 @@ spring:
         ### http://localhost:4004/auth/login
         ### API GATEWAY -> http://auth-service:4005/login
         - id: auth-service
-          uri: lb://AUTH-SERVICE-DEFAULT
+          uri: lb://AUTH-SERVICE
           predicates:
             - Path=/auth/**
           filters:
@@ -25,7 +25,7 @@ spring:
         ### API GATEWAY -> http://patient-service:4000
         ### PATIENT SERVICE (SPRING BOOT APP) -> /patients -> Patients Array
         - id: patient-service
-          uri: lb://PATIENT-SERVICE-DEFAULT
+          uri: lb://PATIENT-SERVICE
           predicates:
             - Path=/api/patients, /api/patients/**
           filters:
