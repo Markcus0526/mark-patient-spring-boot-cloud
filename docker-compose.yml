@@ -32,7 +32,7 @@ services:
       # 2. Your initialization script (ADD THIS)
       - ./auth-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d auth_db" ]
       interval: 5s
@@ -96,7 +96,7 @@ services:
     networks:
       - microservice-network
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   api-gateway:
     image: markcus0526/api-gateway:latest
@@ -112,7 +112,7 @@ services:
     networks:
       - microservice-network
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   auth-service:
     image: markcus0526/auth-service:latest
@@ -127,7 +127,7 @@ services:
       - microservice-network
       - postgres
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   analytics-service:
     image: markcus0526/analytics-service:latest
@@ -143,7 +143,7 @@ services:
       - microservice-network
       - postgres
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   billing-service:
     image: markcus0526/billing-service:latest
@@ -155,7 +155,7 @@ services:
     networks:
       - microservice-network
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   patient-service:
     image: markcus0526/patient-service:latest
@@ -173,7 +173,7 @@ services:
       - microservice-network
       - postgres
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
   service-reg:
     image: markcus0526/service-reg:latest
@@ -183,7 +183,7 @@ services:
     networks:
       - microservice-network
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
 
 networks:
   microservice-network:
