@@ -13,6 +13,8 @@ services:
       - ./patient-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
       - "5432:5432"
+    networks:
+      - postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d patient_db" ]
       interval: 5s
@@ -33,6 +35,8 @@ services:
       - ./auth-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
       - "5433:5432"
+    networks:
+      - postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d auth_db" ]
       interval: 5s
@@ -70,14 +74,16 @@ services:
     ports:
       - "9092:9092"
       - "9094:9094"  # External port for IntelliJ / Host
-  #    networks:
-  #      - kafka-shared-net
+    networks:
+      - microservice-network
 
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
     ports:
       - "9411:9411"
+    networks:
+      - microservice-network
 
   rabbitmq:
     image: rabbitmq:3-management
