@@ -109,12 +109,13 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START: "true" # Forces clone during healthcheck period
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 45s
+      start_period: 60s # Wait 1 full minute before the FIRST check
 
   api-gateway:
     image: markcus0526/api-gateway:latest
@@ -128,6 +129,7 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   auth-service:
     image: markcus0526/auth-service:latest
@@ -143,6 +145,7 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   analytics-service:
     image: markcus0526/analytics-service:latest
@@ -160,6 +163,7 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   billing-service:
     image: markcus0526/billing-service:latest
@@ -173,6 +177,7 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   patient-service:
     image: markcus0526/patient-service:latest
@@ -192,6 +197,7 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
 networks:
   app-network:
