@@ -103,6 +103,12 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "jcmd", "1", "VM.version" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s # Vital: gives the JVM time to boot
 
   api-gateway:
     image: markcus0526/api-gateway:latest
@@ -111,7 +117,7 @@ services:
       - "4004:4004"
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
     environment:
