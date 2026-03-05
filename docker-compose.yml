@@ -1,4 +1,46 @@
 services:
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      CLUSTER_ID: '5L6g3nShT-eMCtK--X86sw'
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9094:9094"
+    networks:
+      - app-network
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   patient-db:
     image: postgres:15-alpine
     container_name: patient-db
@@ -7,14 +49,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      # 1. Your persistent data (keep this)
       - ./db-volumes/patient-db:/var/lib/postgresql/data
-      # 2. Your initialization script (ADD THIS)
       - ./patient-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - app-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d patient_db" ]
       interval: 5s
@@ -29,177 +69,33 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      # 1. Your persistent data (keep this)
       - ./db-volumes/auth-db:/var/lib/postgresql/data
-      # 2. Your initialization script (ADD THIS)
       - ./auth-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
       - "5433:5432"
     networks:
-      - postgres
+      - app-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d auth_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  kafka:
-    image: apache/kafka:4.1.1
-    container_name: kafka
-    environment:
-      # 1. Identity & Roles (KRaft)
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-
-      # 2. Listeners (0.0.0.0 for binding)
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093'
-
-      # 3. Advertised (NO 0.0.0.0 HERE)
-      # 'kafka' is for your services, 'localhost' is for IntelliJ/Host
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092,EXTERNAL://localhost:9094'
-
-      # 4. Security Mapping
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
-
-      # 5. Cluster ID (Matches your logs)
-      CLUSTER_ID: '5L6g3nShT-eMCtK--X86sw'
-
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-
-      # 6. Auto-Create Topics (Optional for Dev)
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-    ports:
-      - "9092:9092"
-      - "9094:9094"  # External port for IntelliJ / Host
-    networks:
-      - microservice-network
-
-  zipkin:
-    image: openzipkin/zipkin
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-    networks:
-      - microservice-network
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - microservice-network
-    healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-    # user: guest, password: guest
   config-server:
     image: markcus0526/config-server:latest
     container_name: config-server
     ports:
       - "8888:8888"
-    depends_on:
-      service-reg:
-        condition: service_healthy
     networks:
-      - microservice-network
+      - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-      interval: 10s
-      timeout: 5s
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 5s
+      timeout: 3s
       retries: 10
-
-  api-gateway:
-    image: markcus0526/api-gateway:latest
-    container_name: api-gateway
-    ports:
-      - "4004:4004"
-    depends_on:
-      - config-server
-      - zipkin
-      - auth-service
-      - patient-service
-      - service-reg
-    networks:
-      - microservice-network
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-
-  auth-service:
-    image: markcus0526/auth-service:latest
-    container_name: auth-service
-    ports:
-      - "4005:4005"
-    depends_on:
-      - auth-db
-      - service-reg
-      - config-server
-    networks:
-      - microservice-network
-      - postgres
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
-
-  analytics-service:
-    image: markcus0526/analytics-service:latest
-    container_name: analytics-service
-    ports:
-      - "4003:4003"
-    depends_on:
-      - kafka
-      - rabbitmq
-      - service-reg
-      - config-server
-    networks:
-      - microservice-network
-      - postgres
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-
-  billing-service:
-    image: markcus0526/billing-service:latest
-    container_name: billing-service
-    ports:
-      - "4001:4001"
-    depends_on:
-      - service-reg
-    networks:
-      - microservice-network
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-
-  patient-service:
-    image: markcus0526/patient-service:latest
-    container_name: patient-service
-    ports:
-      - "4000:4000"
-    depends_on:
-      - kafka
-      - zipkin
-      - service-reg
-      - config-server
-      - patient-db
-      - rabbitmq
-    networks:
-      - microservice-network
-      - postgres
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:4000/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
+      start_period: 45s # Give it 45 seconds to handle the slow Spring boot
 
   service-reg:
     image: markcus0526/service-reg:latest
@@ -207,7 +103,7 @@ services:
     ports:
       - "8761:8761"
     networks:
-      - microservice-network
+      - app-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
       interval: 10s
@@ -216,10 +112,93 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
 
+  api-gateway:
+    image: markcus0526/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "4004:4004"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      service-reg:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+
+  auth-service:
+    image: markcus0526/auth-service:latest
+    container_name: auth-service
+    ports:
+      - "4005:4005"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4005/actuator/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  analytics-service:
+    image: markcus0526/analytics-service:latest
+    container_name: analytics-service
+    ports:
+      - "4003:4003"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+
+  billing-service:
+    image: markcus0526/billing-service:latest
+    container_name: billing-service
+    ports:
+      - "4001:4001"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+
+  patient-service:
+    image: markcus0526/patient-service:latest
+    container_name: patient-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      patient-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+
 networks:
-  microservice-network:
-    driver: bridge
-  postgres:
+  app-network:
     driver: bridge
 
 volumes:

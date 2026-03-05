@@ -65,17 +65,19 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
   tracing:
     sampling:
       probability: 1.0  # Send 100% of traces
   zipkin:
     tracing:
       endpoint: "http://localhost:9411/api/v2/spans"
-  # This is often needed in 3.2.x to ensure the export happens
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,tracing"
 
 logging:
   level:
@@ -85,4 +87,5 @@ logging:
 
 auth-service:
   url: http://localhost:4005
+
 
