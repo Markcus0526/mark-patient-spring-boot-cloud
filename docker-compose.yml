@@ -100,16 +100,29 @@ services:
   config-server:
     image: markcus0526/config-server:latest
     container_name: config-server
+    # Use this for standard Docker Compose
+    mem_limit: 1024m
+    # OR if you want the deploy block to work,
+    # make sure you are using 'docker compose' (no hyphen)
+    # and the version at the top is '3.8'
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
     ports:
       - "8888:8888"
     networks:
       - app-network
     depends_on:
       service-reg:
-        condition: service_started
+        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START: "true" # Forces clone during healthcheck period
+      - SPRING_PROFILES_ACTIVE=docker
+        # 1. Disable Eureka registration DURING boot to prevent deadlock
+      - EUREKA_CLIENT_ENABLED=false
+      # 2. Increase Git timeout
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=30
+#      SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START: "true" # Forces clone during healthcheck period
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
       interval: 10s
@@ -128,8 +141,10 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      - SPRING_PROFILES_ACTIVE=docker
+      # Add "optional:" and use "config-server" hostname
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+#    restart: on-failure
 
   auth-service:
     image: markcus0526/auth-service:latest
@@ -144,8 +159,10 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      - SPRING_PROFILES_ACTIVE=docker
+      # Add "optional:" and use "config-server" hostname
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    restart: on-failure
 
   analytics-service:
     image: markcus0526/analytics-service:latest
@@ -162,8 +179,10 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      - SPRING_PROFILES_ACTIVE=docker
+      # Add "optional:" and use "config-server" hostname
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    restart: on-failure
 
   billing-service:
     image: markcus0526/billing-service:latest
@@ -176,8 +195,10 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      - SPRING_PROFILES_ACTIVE=docker
+      # Add "optional:" and use "config-server" hostname
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    restart: on-failure
 
   patient-service:
     image: markcus0526/patient-service:latest
@@ -196,8 +217,12 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=false # DISABLE THIS
+      # Add "optional:" and use "config-server" hostname
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - JAVA_OPTS=-Xmx768m -Xms256m # Ensure enough memory
+    restart: on-failure
 
 networks:
   app-network:
