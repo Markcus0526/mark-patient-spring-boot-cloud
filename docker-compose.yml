@@ -90,6 +90,12 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
 
   config-server:
     image: markcus0526/config-server:latest
@@ -104,11 +110,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
     healthcheck:
-      test: [ "CMD", "jcmd", "1", "VM.version" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 40s # Vital: gives the JVM time to boot
+      start_period: 45s
 
   api-gateway:
     image: markcus0526/api-gateway:latest
@@ -132,7 +138,7 @@ services:
       auth-db:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
     environment:
@@ -145,7 +151,7 @@ services:
       - "4003:4003"
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
       rabbitmq:
@@ -162,7 +168,7 @@ services:
       - "4001:4001"
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
     environment:
@@ -175,7 +181,7 @@ services:
       - "4000:4000"
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
       patient-db:
         condition: service_healthy
       kafka:
