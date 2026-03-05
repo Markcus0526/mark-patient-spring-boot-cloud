@@ -116,7 +116,6 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   auth-service:
     image: markcus0526/auth-service:latest
@@ -132,7 +131,6 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   analytics-service:
     image: markcus0526/analytics-service:latest
@@ -150,7 +148,6 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   billing-service:
     image: markcus0526/billing-service:latest
@@ -164,7 +161,6 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   patient-service:
     image: markcus0526/patient-service:latest
@@ -184,7 +180,6 @@ services:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
 networks:
   app-network:
