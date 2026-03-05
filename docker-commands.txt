@@ -1,0 +1,40 @@
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/analytics-service -DskipTests
+docker push markcus0526/analytics-service
+
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/auth-service -DskipTests
+docker push markcus0526/auth-service
+
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/billing-service -DskipTests
+docker push markcus0526/billing-service
+
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/config-server -DskipTests
+docker push markcus0526/config-server
+
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/patient-service -DskipTests
+docker push markcus0526/patient-service
+
+sudo ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=markcus0526/service-reg -DskipTests
+docker push markcus0526/service-reg
+
+
+
+docker build -t markcus0526/analytics-service:latest .
+docker push markcus0526/analytics-service:latest
+
+docker build -t markcus0526/api-gateway:latest .
+docker push markcus0526/api-gateway:latest
+
+docker build -t markcus0526/auth-service:latest .
+docker push markcus0526/auth-service:latest
+
+docker build -t markcus0526/billing-service:latest .
+docker push markcus0526/billing-service:latest
+
+docker build -t markcus0526/config-server:latest .
+docker push markcus0526/config-server:latest
+
+docker build -t markcus0526/patient-service:latest .
+docker push markcus0526/patient-service:latest
+
+docker build -t markcus0526/service-reg:latest .
+docker push markcus0526/service-reg:latest
