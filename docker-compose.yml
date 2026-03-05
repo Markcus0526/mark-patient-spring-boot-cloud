@@ -81,22 +81,6 @@ services:
       timeout: 5s
       retries: 5
 
-  config-server:
-    image: markcus0526/config-server:latest
-    container_name: config-server
-    ports:
-      - "8888:8888"
-    networks:
-      - app-network
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 45s # Give it 45 seconds to handle the slow Spring boot
-
   service-reg:
     image: markcus0526/service-reg:latest
     container_name: service-reg
@@ -104,11 +88,19 @@ services:
       - "8761:8761"
     networks:
       - app-network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  config-server:
+    image: markcus0526/config-server:latest
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - app-network
+    depends_on:
+      service-reg:
+        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: docker
 
@@ -119,14 +111,12 @@ services:
       - "4004:4004"
     depends_on:
       config-server:
-        condition: service_healthy
-      service-reg:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   auth-service:
     image: markcus0526/auth-service:latest
@@ -137,17 +127,12 @@ services:
       auth-db:
         condition: service_healthy
       config-server:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:4005/actuator/health" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   analytics-service:
     image: markcus0526/analytics-service:latest
@@ -156,14 +141,16 @@ services:
       - "4003:4003"
     depends_on:
       config-server:
-        condition: service_healthy
+        condition: service_started
       kafka:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   billing-service:
     image: markcus0526/billing-service:latest
@@ -172,12 +159,12 @@ services:
       - "4001:4001"
     depends_on:
       config-server:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
 
   patient-service:
     image: markcus0526/patient-service:latest
@@ -186,10 +173,12 @@ services:
       - "4000:4000"
     depends_on:
       config-server:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+        condition: service_started
       patient-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network

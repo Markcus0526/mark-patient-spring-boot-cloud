@@ -6,7 +6,7 @@ spring:
     name: api-gateway
   #Config server
   config:
-    import: optional:configserver:http://config-server:8888
+    import: optional:configserver:http://localhost:8888
 
   cloud:
     gateway:
@@ -47,6 +47,10 @@ spring:
           filters:
             - RewritePath=/api-docs/auth,/v3/api-docs
 
+auth:
+  service:
+    url: http://localhost:4005 # Or whatever your auth-service URL is
+
 # JWT Configuration - THIS IS THE USUAL CULPRIT
 jwt:
   # MUST BE AT LEAST 32 CHARACTERS (256-bit)
@@ -54,16 +58,11 @@ jwt:
   expiration: 86400000
 
 eureka:
-#  instance:
-#    # This is the most important setting for Docker
-#    prefer-ip-address: true
-#    # Optional: Ensure the ID is unique so Eureka doesn't get confused
-#    instance-id: ${spring.application.name}:${random.value}
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://service-reg:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
@@ -78,7 +77,7 @@ management:
       probability: 1.0  # Send 100% of traces
   zipkin:
     tracing:
-      endpoint: "http://zipkin:9411/api/v2/spans"
+      endpoint: "http://localhost:9411/api/v2/spans"
 
 logging:
   level:
@@ -87,4 +86,6 @@ logging:
     org.springframework.cloud.gateway.route.RouteDefinitionLocator: INFO
 
 auth-service:
-  url: http://auth-service:4005
+  url: http://localhost:4005
+
+
