@@ -54,11 +54,11 @@ jwt:
   expiration: 86400000
 
 eureka:
-#  instance:
-#    # This is the most important setting for Docker
-#    prefer-ip-address: true
-#    # Optional: Ensure the ID is unique so Eureka doesn't get confused
-#    instance-id: ${spring.application.name}:${random.value}
+  #  instance:
+  #    # This is the most important setting for Docker
+  #    prefer-ip-address: true
+  #    # Optional: Ensure the ID is unique so Eureka doesn't get confused
+  #    instance-id: ${spring.application.name}:${random.value}
   client:
     register-with-eureka: true
     fetch-registry: true
