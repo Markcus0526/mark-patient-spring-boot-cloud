@@ -93,6 +93,11 @@ services:
       - "15672:15672"
     networks:
       - microservice-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
     # user: guest, password: guest
   config-server:
