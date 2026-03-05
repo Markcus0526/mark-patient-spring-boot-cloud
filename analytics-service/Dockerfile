@@ -14,12 +14,17 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Create a non-root user for better security
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# 1. Install curl while still root
+RUN apk add --no-cache curl
 
-# Copy only the built jar
-COPY --from=build /app/target/*.jar app.jar
+# 2. Create a non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+
+# 3. Copy the jar and change ownership
+COPY --from=build --chown=spring:spring /app/target/*.jar app.jar
+
+# 4. Switch to non-root user
+USER spring:spring
 
 # Standard Spring Boot environment variables
 ENV SPRING_PROFILES_ACTIVE=docker
