@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Project: API Gateway
+  Architecture: Spring Cloud Gateway (Reactive Stack)
+  Base Version: Spring Boot 3.3.3 | Spring Cloud 2023.0.3
+  Description: Central entry point for the microservice cluster.
+               Handles Routing, JWT Validation (JJWT), Distributed Tracing (Zipkin/Brave),
+               and Service Discovery (Eureka).
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<!-- Standard Spring Boot Parent: Manages versions for all 'spring-boot-starter' dependencies -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -17,9 +26,11 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<!-- Cloud BOM version compatible with Boot 3.3.x -->
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
 
+	<!-- Bill of Materials (BOM): Ensures all Spring Cloud starters use compatible versions -->
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -33,13 +44,13 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- Spring Cloud Gateway (Version managed by BOM) -->
+		<!-- Main Gateway dependency for Routing and Filtering -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
 		</dependency>
 
-		<!-- JJWT - Declared ONCE -->
+		<!-- JJWT: Used for parsing and validating JWT tokens in Custom Filters -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -58,26 +69,37 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Service Discovery Client to find Auth and Patient services -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
+
+		<!-- Load Balancer for 'lb://' URI resolution in routes -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-loadbalancer</artifactId>
 		</dependency>
+
+		<!-- Feign Client support for inter-service communication -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
+
+		<!-- Distributed Tracing: Micrometer/Brave creates Trace and Span IDs -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-brave</artifactId>
 		</dependency>
+
+		<!-- Zipkin Reporter: Sends traces to the Zipkin container -->
 		<dependency>
 			<groupId>io.zipkin.reporter2</groupId>
 			<artifactId>zipkin-reporter-brave</artifactId>
 		</dependency>
+
+		<!-- Observability: Propagates tracing IDs through Feign and HTTP calls -->
 		<dependency>
 			<groupId>io.github.openfeign</groupId>
 			<artifactId>feign-micrometer</artifactId>
@@ -86,15 +108,20 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-observation</artifactId>
 		</dependency>
+
+		<!-- Actuator: Provides /health and /info endpoints for Docker healthchecks -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+
+		<!-- Config Client: Fetches routing configuration from the Config Server -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
 
+		<!-- Standard Test Starter for Unit and Integration testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -104,6 +131,7 @@
 
 	<build>
 		<plugins>
+			<!-- Plugin to package the application as an executable jar or Docker image -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

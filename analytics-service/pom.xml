@@ -1,51 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Spring Boot Parent: Synchronizes versions for all internal starters -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.3</version>
 		<relativePath/>
 	</parent>
+
 	<groupId>com.pm</groupId>
 	<artifactId>analytics-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>analytics-service</name>
-	<description>Service for analytics</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<description>Service for processing and storing system analytics</description>
+
 	<properties>
-		<java.version>17</java.version> <!-- or 21 -->
-		<!-- This version matches Spring Boot 3.3.x perfectly -->
+		<java.version>17</java.version>
+		<!-- Spring Cloud version aligned for Boot 3.3.x support -->
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
 
 	<dependencies>
-		<!-- 1. Web Support (Includes MVC) -->
+		<!-- Web & Monitoring: REST endpoints and Healthcheck support -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 
-		<!-- 2. Kafka (Version managed by parent, no manual version needed) -->
+		<!-- Kafka: High-throughput event streaming for analytics data -->
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
 		</dependency>
 
-		<!-- 3. Eureka & Config -->
+		<!-- Infrastructure: Service Discovery and Centralized Configuration -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -55,17 +50,17 @@
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
 
-		<!-- 4. RabbitMQ/AMQP -->
+		<!-- RabbitMQ/AMQP: Message broker support for inter-service alerts -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
 
-		<!-- 5. Protobuf (Keep your specific versions here) -->
+		<!-- Protobuf: Library for deserializing binary event data -->
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
-			<version>3.25.5</version> <!-- Match with your plugin version below -->
+			<version>3.25.5</version> <!-- Matched with protoc plugin below -->
 		</dependency>
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
@@ -73,7 +68,7 @@
 			<version>3.25.5</version>
 		</dependency>
 
-		<!-- 6. Testing -->
+		<!-- Testing: Comprehensive test support for Web, Kafka, and RabbitMQ -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -105,7 +100,7 @@
 
 	<build>
 		<extensions>
-			<!-- Ensure OS compatibility for protoc -->
+			<!-- Detects OS properties (e.g. windows-x86_64) for Protoc Artifact resolution -->
 			<extension>
 				<groupId>kr.motd.maven</groupId>
 				<artifactId>os-maven-plugin</artifactId>
@@ -113,15 +108,14 @@
 			</extension>
 		</extensions>
 		<plugins>
+			<!-- Protobuf Plugin: Generates Java DTOs from .proto files during compilation -->
 			<plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
 				<artifactId>protobuf-maven-plugin</artifactId>
 				<version>0.6.1</version>
 				<configuration>
-					<!--suppress UnresolvedMavenProperty -->
 					<protocArtifact>com.google.protobuf:protoc:3.25.5:exe:${os.detected.classifier}</protocArtifact>
 					<pluginId>grpc-java</pluginId>
-					<!--suppress UnresolvedMavenProperty -->
 					<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.68.1:exe:${os.detected.classifier}</pluginArtifact>
 				</configuration>
 				<executions>
@@ -133,11 +127,11 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
